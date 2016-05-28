@@ -39,35 +39,36 @@
 {
     NSMutableArray *newItems = [[NSMutableArray alloc] init];
     [_quadTree clear];
-    
+
     for (GQuadItem *item in _items)
         if (CGRectContainsPoint(rect, CGPointMake(item.position.latitude, item.position.longitude)))
         {
             [newItems addObject:item];
             [_quadTree add:item];
         }
-    
+
     _items = newItems;
 }
 
 - (NSSet*)getClusters:(float)zoom {
     int discreteZoom = (int) zoom;
-    
+
     double zoomSpecificSpan = _maxDistanceAtZoom / pow(2, discreteZoom) / 256;
-    
+
     NSMutableSet *visitedCandidates = [[NSMutableSet alloc] init];
     NSMutableSet *results = [[NSMutableSet alloc] init];
     NSMutableDictionary *distanceToCluster = [[NSMutableDictionary alloc] init];
     NSMutableDictionary *itemToCluster = [[NSMutableDictionary alloc] init];
-    
+
+    NSArray *auxItems = [_items copy];
     for (GQuadItem* candidate in _items) {
         if (candidate.hidden) continue;
-        
+
         if ([visitedCandidates containsObject:candidate]) {
             // Candidate is already part of another cluster.
             continue;
         }
-        
+
         GQTBounds bounds = [self createBoundsFromSpan:candidate.point span:zoomSpecificSpan];
         NSArray *clusterItems  = [_quadTree searchWithBounds:bounds];
         if ([clusterItems count] == 1) {
@@ -77,10 +78,10 @@
             [distanceToCluster setObject:[NSNumber numberWithDouble:0] forKey:candidate];
             continue;
         }
-        
+
         GStaticCluster *cluster = [[GStaticCluster alloc] initWithCoordinate:candidate.position andMarker:candidate.marker];
         [results addObject:cluster];
-        
+
         for (GQuadItem* clusterItem in clusterItems) {
             if (clusterItem.hidden) continue;
             NSNumber *existingDistance = [distanceToCluster objectForKey:clusterItem];
@@ -90,7 +91,7 @@
                 if ([existingDistance doubleValue] < distance) {
                     continue;
                 }
-                
+
                 // Move item to the closer cluster.
                 GStaticCluster *oldCluster = [itemToCluster objectForKey:clusterItem];
                 [oldCluster remove:clusterItem];
@@ -101,7 +102,7 @@
         }
         [visitedCandidates addObjectsFromArray:clusterItems];
     }
-    
+
     return results;
 }
 
