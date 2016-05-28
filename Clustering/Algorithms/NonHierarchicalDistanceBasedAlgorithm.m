@@ -61,7 +61,7 @@
     NSMutableDictionary *itemToCluster = [[NSMutableDictionary alloc] init];
 
     NSArray *auxItems = [_items copy];
-    for (GQuadItem* candidate in _items) {
+    for (GQuadItem* candidate in auxItems) {
         if (candidate.hidden) continue;
 
         if ([visitedCandidates containsObject:candidate]) {
