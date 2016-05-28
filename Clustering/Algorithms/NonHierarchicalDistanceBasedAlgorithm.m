@@ -46,13 +46,14 @@
     NSMutableArray *newItems = [[NSMutableArray alloc] init];
     [_quadTree clear];
 
+    [_lock lock];
     for (GQuadItem *item in _items)
         if (CGRectContainsPoint(rect, CGPointMake(item.position.latitude, item.position.longitude)))
         {
             [newItems addObject:item];
             [_quadTree add:item];
         }
-    [_lock lock];
+
     _items = newItems;
     [_lock unlock];
 }
@@ -68,7 +69,12 @@
     NSMutableDictionary *itemToCluster = [[NSMutableDictionary alloc] init];
 
     [_lock lock];
-    NSArray * copyArray = [_items copy];
+    NSMutableArray *copyArray = [NSMutableArray arrayWithCapacity:_items.count];
+    for(int i=0; i<_items.count;i++) {
+        if(_items[i]) {
+            [copyArray addObject:_items[i]];
+        }
+    }
     [_lock unlock];
     for (GQuadItem* candidate in copyArray) {
         if (candidate.hidden) continue;
@@ -111,6 +117,7 @@
         }
         [visitedCandidates addObjectsFromArray:clusterItems];
     }
+
 
 
     return results;
