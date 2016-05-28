@@ -8,6 +8,7 @@
 @implementation NonHierarchicalDistanceBasedAlgorithm {
     GQTPointQuadTree *_quadTree;
     NSInteger _maxDistanceAtZoom;
+    NSLock *_lock;
 }
 
 - (id)initWithMaxDistanceAtZoom:(NSInteger)aMaxDistanceAtZoom {
@@ -15,6 +16,7 @@
         _items = [[NSMutableArray alloc] init];
         _quadTree = [[GQTPointQuadTree alloc] initWithBounds:(GQTBounds){0,0,1,1}];
         _maxDistanceAtZoom = aMaxDistanceAtZoom;
+        _lock = [[NSLock alloc] init];
     }
     return self;
 }
@@ -26,13 +28,17 @@
 - (void)addItem:(id <GClusterItem>) item {
     GQuadItem *quadItem = [[GQuadItem alloc] initWithItem:item];
     [_items addObject:quadItem];
+    [_lock lock];
     [_quadTree add:quadItem];
+    [_lock unlock];
 }
 
 - (void)removeItems
 {
+  [_lock lock];
   [_items removeAllObjects];
   [_quadTree clear];
+  [_lock unlock];
 }
 
 - (void)removeItemsNotInRectangle:(CGRect)rect
@@ -46,8 +52,9 @@
             [newItems addObject:item];
             [_quadTree add:item];
         }
-
+    [_lock lock];
     _items = newItems;
+    [_lock unlock];
 }
 
 - (NSSet*)getClusters:(float)zoom {
@@ -60,8 +67,8 @@
     NSMutableDictionary *distanceToCluster = [[NSMutableDictionary alloc] init];
     NSMutableDictionary *itemToCluster = [[NSMutableDictionary alloc] init];
 
-    NSArray *auxItems = [_items copy];
-    for (GQuadItem* candidate in auxItems) {
+    [_lock lock];
+    for (GQuadItem* candidate in _items) {
         if (candidate.hidden) continue;
 
         if ([visitedCandidates containsObject:candidate]) {
@@ -102,6 +109,7 @@
         }
         [visitedCandidates addObjectsFromArray:clusterItems];
     }
+    [_lock unlock];
 
     return results;
 }
