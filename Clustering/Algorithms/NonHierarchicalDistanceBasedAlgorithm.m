@@ -70,7 +70,7 @@
     [_lock lock];
     NSArray * copyArray = [_items copy];
     [_lock unlock];
-    for (GQuadItem* candidate in auxItems) {
+    for (GQuadItem* candidate in copyArray) {
         if (candidate.hidden) continue;
 
         if ([visitedCandidates containsObject:candidate]) {
