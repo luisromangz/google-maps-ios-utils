@@ -7,11 +7,6 @@
 
 @implementation GQTPointQuadTree {
   /**
-   * The bounds of this PointQuadTree.
-   */
-  GQTBounds bounds_;
-
-  /**
    * The Quad Tree data structure.
    */
   GQTPointQuadTreeChild *root_;
@@ -25,7 +20,7 @@
 
 - (id)initWithBounds:(GQTBounds)bounds {
   if (self = [super init]) {
-    bounds_ = bounds;
+    _bounds = bounds;
     [self clear];
   }
   return self;
@@ -42,14 +37,14 @@
   }
 
   GQTPoint point = item.point;
-  if (point.x > bounds_.maxX ||
-      point.x < bounds_.minX ||
-      point.y > bounds_.maxY ||
-      point.y < bounds_.minY) {
+  if (point.x > _bounds.maxX ||
+      point.x < _bounds.minX ||
+      point.y > _bounds.maxY ||
+      point.y < _bounds.minY) {
     return NO;
   }
 
-  [root_ add:item withOwnBounds:bounds_ atDepth:0];
+  [root_ add:item withOwnBounds:_bounds atDepth:0];
 
   ++count_;
 
@@ -63,14 +58,14 @@
  */
 - (BOOL)remove:(id<GQTPointQuadTreeItem>)item {
   GQTPoint point = item.point;
-  if (point.x > bounds_.maxX ||
-      point.x < bounds_.minX ||
-      point.y > bounds_.maxY ||
-      point.y < bounds_.minY) {
+  if (point.x > _bounds.maxX ||
+      point.x < _bounds.minX ||
+      point.y > _bounds.maxY ||
+      point.y < _bounds.minY) {
     return NO;
   }
 
-  BOOL removed = [root_ remove:item withOwnBounds:bounds_];
+  BOOL removed = [root_ remove:item withOwnBounds:_bounds];
 
   if (removed) {
     --count_;
@@ -95,7 +90,7 @@
 - (NSArray *)searchWithBounds:(GQTBounds)searchBounds {
 
   NSMutableArray *results = [NSMutableArray array];
-  [root_ searchWithBounds:searchBounds withOwnBounds:bounds_ results:results];
+  [root_ searchWithBounds:searchBounds withOwnBounds:_bounds results:results];
   return results;
 }
 

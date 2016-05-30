@@ -4,6 +4,7 @@
 
 @interface GQTPointQuadTree : NSObject
 
+@property (readonly) GQTBounds bounds;
 
 /**
  * Create a QuadTree with bounds. Please note, this class is not thread safe.
